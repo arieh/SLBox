@@ -26,17 +26,17 @@ Note that the galery assumes the anchors' href will point to the target image fo
    
 Options:
 --------
-    * lang: An object containing the text used for the buttons (look at source code to see what you can put there)
-    * next : A function to fire when pressing the next button
-    * prev : A function to fire when pressing the prev button
-    * images : path to images folder
-    * loader : name of loader image
-    * close : name of close button image
-    * useNav : should the class create the navigation buttons (default:`true`);
+  * lang: An object containing the text used for the buttons (look at source code to see what you can put there)
+  * next : A function to fire when pressing the next button
+  * prev : A function to fire when pressing the prev button
+  * images : path to images folder
+  * loader : name of loader image
+  * close : name of close button image
+  * useNav : should the class create the navigation buttons (default:`true`);
 
 Events:
 --------
-    * next : fires when the next button is clicked
-    * prev : fires when the prev button is clicked
-    * close : fires when the box closes
-    * complete : fires when the loading <completes></completes>
+  * next : fires when the next button is clicked
+  * prev : fires when the prev button is clicked
+  * close : fires when the box closes
+  * complete : fires when the loading <completes></completes>

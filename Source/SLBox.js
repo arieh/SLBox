@@ -1,3 +1,41 @@
+/*
+---
+description: A Class that provides a simple lightbox with hooks for navigation
+
+license: MIT-style
+
+authors:
+- Arieh Glazer
+
+requires:
+- core/1.2.4: [Class, Class.Extras, Element, Element.Event, Element.Style, Element.Dimensions, Selectors]
+- more/1.2.4: [Assets]
+
+provides: [SLBox, SLBGalery]
+
+...
+*/
+/*!
+Copyright (c) 2009 Arieh Glazer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE 
+*/
 (function(window,$,undef){
 	var first = true //whether the base box needs to be generated
 		, buttons_set = false
@@ -5,7 +43,7 @@
 		, modal //the modal layer
 		, loader; //the loader image
 		
-	SLBox = new Class({
+	window['SLBox'] = new Class({
 		Implements : [Options,Events]
 		,options :{
 		  lang :{ // text to put in nav
@@ -255,4 +293,75 @@
 			}).inject(document.body);
 		}
 	});
+	
+	window['SLBGalery'] = new Class({
+        Implements : Events
+        , col : null
+        , current : 0
+        /**
+         * @param {Elements} col a collection of anchor elements surounding img elements 
+         * @param {Object} options
+         */
+        , initialize : function(col,options){
+            var $this=this
+                , t_next = $empty
+                , t_prev = $empty
+                , box;
+            
+            function prevFunc(){
+                if ($this.current > 0){
+                    $this.col[$this.current].removeClass('current');
+                    $this.current--;
+                    $this.col[$this.current].addClass('current');
+                    box = new SLBox($this.col[$this.current].href,options);                 
+                    if ($this.current == 0) box.setFirst();
+                }else{
+                    box.setFirst();
+                }
+                t_prev();
+            }
+            
+            function nextFunc(){
+                if ($this.current < $this.col.length-1){
+                    $this.col[$this.current].removeClass('current');
+                    $this.current++;
+                    $this.col[$this.current].addClass('current');
+                    box = new SLBox($this.col[$this.current].href,options);
+                    if ($this.current == $this.col.length-1) box.setLast();
+                }
+                t_next();
+            }
+                
+            options = options || {};
+            this.col = col;
+            
+            if (options['nextFunc']) t_next = options['nextFunc'];
+            if (options['prevFunc']) t_prev = options['prevFunc'];
+            
+            options['events'] = {
+                  'next' : function(){$this.fireEvent('next');}
+                , 'prev' : function(){$this.fireEvent('prev');}
+                , 'close' : function(){$this.fireEvent('close');}
+                , 'complete' : function(){$this.fireEvent('complete');}
+            };
+            
+            
+            options['nextFunc'] = nextFunc;
+            
+            options['prevFunc'] = prevFunc;
+            
+            this.col.addEvent('click',function(e){
+                e = e || window.event;
+                var target = $(e.target), parent = target.getParent('a');
+                e.preventDefault();
+                if (target.match('img')){
+                    $this.col[$this.current].removeClass('current');
+                    box = new SLBox(parent.href,options);
+                    $this.current = $this.col.indexOf(parent);
+                    parent.addClass('current');
+                    if ($this.current == 0) box.setFirst();
+                }
+            });
+        }
+    });
 })(this,document.id);

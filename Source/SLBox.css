@@ -7,7 +7,7 @@
 	right:0; 
 	filter: alpha(opacity=50);-ms-filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=50);
 }
-.loader {position:absolute; z-index:455}
+.loader {position:absolute; z-index:555}
 .lightbox{
     padding:20px;
     margin:20px;

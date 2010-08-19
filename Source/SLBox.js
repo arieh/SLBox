@@ -65,6 +65,7 @@ THE SOFTWARE
 		}
 		, modal:null
 		, container : null
+		, loader_size : {x:0,y:0}
 		/**
 		 * @param {String} src image source
 		 * @param {Object} options
@@ -74,10 +75,14 @@ THE SOFTWARE
 			
 			if (first) this.generateBox();
 			
-			if (this.options.useNav && !buttons_set) this.generateNav();
+			if (this.options.useNav && !buttons_set){
+				this.generateNav();
+			} 
 			if (this.options.useNav) this.setButtons();
-
+            
+			this.openLoader();
 			this.loadImage(src);	
+			return this;
 		}
 		/**
 		 * generate the lightbox html
@@ -96,6 +101,9 @@ THE SOFTWARE
 			 
 		     loader =  $(new Image()).addClass('loader');	
 			 loader.src = this.options.images + '/' + this.options.loader;
+			 loader.setStyles('right',-9999).inject(document.body);
+			 this.loader_size = loader.getSize();
+			 loader.setStyle('display','none');
 			 
 			 container.getElement('.close')
 			     .setStyle('background-image' , 'url('+this.options.images+'/'+this.options.close)
@@ -136,7 +144,7 @@ THE SOFTWARE
 				 .removeClass('hidden')
 				 .removeClass('first');
 				 
-             container.getElement('.close').addEvent('click',this.close);
+             container.getElement('.close').addEvent('click',this.close.bind(this));
 		}
 		/**
 		 * load an image into the lightbox
@@ -149,11 +157,8 @@ THE SOFTWARE
 			  , image = new Asset.image(src+'?'+(new Date()))
               , full_size = Window.getScrollSize();
 			
-			this.openLoader();
-			
 			image.addEvents({
 				'load': function(){
-					$this.closeLoader();
 					$this.openModal();
 					var content = container.getElement('.content'), clone = image.clone().setStyles({
 						left: -9999,
@@ -185,10 +190,11 @@ THE SOFTWARE
 						height: size.y
 					});
 					container.setStyle('width',size.x);
-					$this.injectBox();
+					$this.injectBox.bind($this)();
+					$this.closeLoader();
 				}
 				,'error' : function(){
-					$this.close();
+					//$this.close();
 				}
 			});
 		}
@@ -199,13 +205,14 @@ THE SOFTWARE
 			var size, $this=this
               , screen = Window.getSize()
               , scroll = Window.getScroll();
-			  
+			
+			 
 			container.setStyles({
 				right:-9999
 			}).inject(document.body);
 			
 			size = container.getSize();
-            
+			
 			container.setStyles({
 				top : screen.y/2 + scroll.y - size.y/2
 				, right : '50%'
@@ -213,31 +220,23 @@ THE SOFTWARE
 			});
 			
 			this.fireEvent('complete');
+			
 		}
 		/**
 		 * move one image farword
 		 */
 		,next : function(){
+            this.close();
 			this.fireEvent('next');
 			this.options.nextFunc();
-            this.close();
 		}
 		/**
 		 * move one image backwords
 		 */
 		,prev : function(){
+            this.close();
 			this.fireEvent('prev');
 			this.options.prevFunc();
-            this.close();
-		}
-		/**
-		 * close the lightbox
-		 */
-		,close : function(){
-			container.dispose();
-			modal.dispose();
-			loader.dispose();
-			this.fireEvent('close');
 		}
 		/**
 		 * tell the menu the item displayed is the first (hide prev button)
@@ -256,24 +255,28 @@ THE SOFTWARE
 		 * open the loader image
 		 */
 		, openLoader : function(){
-			var size 
+			var size = this.loader_size
 			  , screen = Window.getSize()
 			  , scroll = Window.getScroll();
-			
-            loader.setStyles('right' , -9999).inject(document.body);
-			
-			size = loader.getSize();
 			
 			loader.setStyles({
                 top : screen.y/2 + scroll.y - size.y/2
                 , right : '50%'
                 , 'margin-right' : -1*size.x/2
-            }).inject(document.body);
+				, 'display' : 'block'
+            });
 		} 
 		/**
 		 * close the loader image
 		 */
-		, closeLoader : function(){loader.dispose();}
+		, closeLoader : function(){
+			if (loader.getStyle('display')=='block'){
+				console.log('in');
+				loader.setStyle('display','none');
+				
+			}else 
+			 console.log('bla');			
+		}
 		/**
 		 * accessor to container element
 		 */
@@ -292,12 +295,23 @@ THE SOFTWARE
 				, 'width' : size.x
 			}).inject(document.body);
 		}
+        /**
+         * close the lightbox
+         */
+        ,close : function(){
+            container.dispose();
+            modal.dispose();
+            this.closeLoader();
+            this.fireEvent('close');
+        }
 	});
 	
 	window['SLBGalery'] = new Class({
-        Implements : Events
+        Extends : SLBox
+		, Implements : Events
         , col : null
         , current : 0
+		, box : null
         /**
          * @param {Elements} col a collection of anchor elements surounding img elements 
          * @param {Object} options
@@ -305,18 +319,18 @@ THE SOFTWARE
         , initialize : function(col,options){
             var $this=this
                 , t_next = $empty
-                , t_prev = $empty
-                , box;
+                , t_prev = $empty;
             
             function prevFunc(){
                 if ($this.current > 0){
                     $this.col[$this.current].removeClass('current');
                     $this.current--;
                     $this.col[$this.current].addClass('current');
-                    box = new SLBox($this.col[$this.current].href,options);                 
-                    if ($this.current == 0) box.setFirst();
+                    $this.box = new SLBox($this.col[$this.current].href,options);    
+                    $this.box.addEvents(events);//this is needed because adding the next event fails otherwise             
+                    if ($this.current == 0) this.box.setFirst();
                 }else{
-                    box.setFirst();
+                    $this.box.setFirst();
                 }
                 t_prev();
             }
@@ -326,8 +340,9 @@ THE SOFTWARE
                     $this.col[$this.current].removeClass('current');
                     $this.current++;
                     $this.col[$this.current].addClass('current');
-                    box = new SLBox($this.col[$this.current].href,options);
-                    if ($this.current == $this.col.length-1) box.setLast();
+                    $this.box = new SLBox($this.col[$this.current].href,options);
+                    $this.box.addEvents(events);//this is needed because adding the next event fails otherwise
+                    if ($this.current == $this.col.length-1) $this.box.setLast();
                 }
                 t_next();
             }
@@ -338,7 +353,7 @@ THE SOFTWARE
             if (options['nextFunc']) t_next = options['nextFunc'];
             if (options['prevFunc']) t_prev = options['prevFunc'];
             
-            options['events'] = {
+            events = {
                   'next' : function(){$this.fireEvent('next');}
                 , 'prev' : function(){$this.fireEvent('prev');}
                 , 'close' : function(){$this.fireEvent('close');}
@@ -356,10 +371,11 @@ THE SOFTWARE
                 e.preventDefault();
                 if (target.match('img')){
                     $this.col[$this.current].removeClass('current');
-                    box = new SLBox(parent.href,options);
+                    $this.box = new SLBox(parent.href,options);
+					$this.box.addEvents(events);//this is needed because adding the next event fails otherwise
                     $this.current = $this.col.indexOf(parent);
                     parent.addClass('current');
-                    if ($this.current == 0) box.setFirst();
+                    if ($this.current == 0) $this.box.setFirst();
                 }
             });
         }

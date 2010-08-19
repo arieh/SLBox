@@ -328,7 +328,7 @@ THE SOFTWARE
                     $this.col[$this.current].addClass('current');
                     $this.box = new SLBox($this.col[$this.current].href,options);    
                     $this.box.addEvents(events);//this is needed because adding the next event fails otherwise             
-                    if ($this.current == 0) this.box.setFirst();
+                    if ($this.current == 0) $this.box.setFirst();
                 }else{
                     $this.box.setFirst();
                 }

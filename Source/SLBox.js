@@ -36,7 +36,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE 
 */
-(function(window,$,undef){
+(function(window,$,$empty,undef){
 	var first = true //whether the base box needs to be generated
 		, buttons_set = false
 		, container //the lightbox container
@@ -380,4 +380,4 @@ THE SOFTWARE
             });
         }
     });
-})(this,document.id);
+})(this,document.id,Function.creat());

@@ -9,8 +9,7 @@ authors:
 
 requires:
 - core/1.3: [Class, Class.Extras, Element, Element.Event, Element.Style, Element.Dimensions, Selectors]
-- more/1.3: [Assets]
-
+    
 provides: [SLBox, SLBGalery]
 
 ...
@@ -154,9 +153,10 @@ THE SOFTWARE
 			var $this = this
 			  , screen = Window.getSize()
 			  , scroll = Window.getScroll()
-			  , image = new Asset.image(src+'?'+(new Date()))
+			  , image = new Image()
               , full_size = Window.getScrollSize();
 			
+            image.src = src+'?'+(new Date());
 			image.addEvents({
 				'load': function(){
 					$this.openModal();
@@ -271,11 +271,8 @@ THE SOFTWARE
 		 */
 		, closeLoader : function(){
 			if (loader.getStyle('display')=='block'){
-				console.log('in');
 				loader.setStyle('display','none');
-				
-			}else 
-			 console.log('bla');			
+			}	
 		}
 		/**
 		 * accessor to container element
@@ -380,4 +377,4 @@ THE SOFTWARE
             });
         }
     });
-})(this,document.id,Function.creat());
+})(this,document.id,function(){});
